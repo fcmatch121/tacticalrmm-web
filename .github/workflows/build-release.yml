@@ -4,6 +4,17 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build/publish (e.g. v1.2.3)"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   build:
@@ -28,9 +39,10 @@ jobs:
         run: npm run build
 
       - name: Create tarball
-        run: tar -czvf trmm-web-${{github.ref_name}}.tar.gz dist/
+        run: tar -czvf trmm-web-${{ env.RELEASE_TAG }}.tar.gz dist/
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: trmm-web-${{github.ref_name}}.tar.gz
+          tag_name: ${{ env.RELEASE_TAG }}
+          files: trmm-web-${{ env.RELEASE_TAG }}.tar.gz
